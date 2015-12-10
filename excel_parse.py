@@ -19,14 +19,16 @@ import re
 import sys
 
 a =0
-carrier_headers = ('CARRIERS ID', 'sub_Sample Name', 'sub_individual ID', 'sub Gender', 'sub_Sample status','sub_pedigree', 'Sub_Mother ID', 'Sub_Father ID', 'Sub_Disease Type', 'SubRace', 'Sub_Ethnicity', 'CARRIERS ID comment')
+carrier_headers = ('CARRIERS ID', 'Sub_Sample Name', 'Sub_Individual ID', 'Sub_Gender', 'Sub_Sample Status','Sub_Pedigree', 'Sub_Mother ID', 'Sub_Father ID', 'Sub_Disease Type',
+                     'Sub_Race', 'Sub_Ethnicity', 'CARRIERS ID Comment')
 carrier_output_table = "carrier_ID"
 
-caid_cast_header = ('CAID_CAST_KEY', 'CARRIERS_ID', 'CAST_Barcode', 'Sub_coord', 'Sub_vol', 'Sub_conc', 'Sub_Alias', 'Sub_site of origin', 'Sub_Tissue source', 'Sub_Sample Blank', 'Sub_default control', 'CAID_cast comment')
+caid_cast_header = ('CAID_CAST_KEY', 'CARRIERS ID', 'CAST Barcode', 'Sub_Coord', 'Sub_Vol', 'Sub_Conc', 'Sub_Alias', 'Sub_Site of Origin', 'Sub_Tissue Source',
+                    'Sub_Sample Blank', 'Sub_Comment', 'CAID_CAST Comment')
 caid_cast_output_table = 'CAID_CAST'
 
-cast_plate_header = ('CAST Barcode', 'CAST Plate/Box', 'Date Received', 'Sub_contact ID', 'Sub_contact_person', 'Sub_Plate Name', 'Sub_Plate Description', 'Manifest File', 'FileData', 
-                        'FileFlags', 'FileTimeStamp', 'FileType', 'FileURL', 'CAST Plate Location', 'CAST Plate Comment')
+cast_plate_header = ('CAST Barcode', 'CAST Plate/Box', 'Date Received', 'Sub_Contact ID', 'Sub_Contact_Person','Sub_Contact E-mail', 'Sub_Project Type', 'Sub_Plate Name',
+                     'Sub_Plate Description', 'CAST PLate comment')
 cast_plate_output_table = 'CAST Plate'
 
 
@@ -99,9 +101,10 @@ def create_cast_plate(sheet):
     contact_id = create_index(sheet,"Contact ID (Study Acronym)*", 15,0,2)
     contact_person = create_index(sheet, "Contact Person", 16,0,2)
     contact_email = create_index(sheet, "Contact Email*", 17,0,2)
+    project_type = create_index(sheet,"Project Type*", 18,0,2)
     plate_name = create_index(sheet,"Plate Name *", 22,0,2)
     plate_description =  create_index(sheet,"Plate Description", 23,0,2)
-    comb = contact_id + contact_person + Plate_Barcode + contact_email + plate_name + plate_description
+    comb = Plate_Barcode + contact_id + contact_person + contact_email +  project_type + plate_name + plate_description
     cast_plate_dict = dict(comb)
     return cast_plate_dict
 
@@ -138,7 +141,7 @@ def sample_data(sheet,new_header, data_index):
             if l.Sample_Name != '':
                 Sample_Name.append(l.Sample_Name)
                 carrierID_dict[l.Sample_Name] = [l.Individual_ID, l.Gender, l.Sample_Status, l.Pedigree, l.Mother_ID,
-                                                 l.Father_ID, l.Disease_Type, l.Race, l.Ethnicity, l.Comment]
+                                                 l.Father_ID, l.Disease_Type, l.Race, l.Ethnicity]
                 caid_plate_dict[l.Sample_Name] = [l.Coord, l.Vol_ul, l.Conc_ngul, l.Alias, l.Site_of_Origin, l.Tissue_Source, 
                                                   l.Sample_Blank, l.Default_Control, l.Comment]
      
@@ -174,7 +177,7 @@ def create_tuple_output(carrierID_dict, caid_plate_dict, cast_plate_dict, sample
     cast_id_table = []
     for carrier_key, carrier_value in  carrierID_dict.items():
         if sample_name_carrier_id[carrier_key]:
-            carrier_id_string = ((str(sample_name_carrier_id[carrier_key]),  str(carrier_key), str(",".join(carrier_value[:]))))
+            carrier_id_string = ((str(sample_name_carrier_id[carrier_key]),  str(carrier_key), str(",".join(carrier_value[:])),''))
             carr_tup = carrier_id_string[:2] + tuple(carrier_id_string[2].split(","))
             carrier_id_table.append(carr_tup)
 
@@ -182,14 +185,17 @@ def create_tuple_output(carrierID_dict, caid_plate_dict, cast_plate_dict, sample
     for caid_key, caid_value in caid_plate_dict.items():
         if sample_name_carrier_id[caid_key]:
             caid_id_string = ('', str(sample_name_carrier_id[caid_key]), '', ','.join(str(i) for i in caid_value))
-            caid_tup = caid_id_string[:3] + tuple(caid_id_string[3].split(","))
+            caid_tup = caid_id_string[:3] + tuple(caid_id_string[-1].split(",")[:-2]) + tuple([caid_id_string[-1].split(',')[-1]]) + tuple('')
             caid_id_table.append(caid_tup)
 
-    cast_plate_row = (cast_plate_dict['Plate_Barcode'],'' , '', str(cast_plate_dict['Contact_ID_Study_Acronym']), str(cast_plate_dict['Contact_Person']), str(cast_plate_dict['Plate_Name']), str(cast_plate_dict['Plate_Description'])
-                        ,"","","","","","","","")
-    for i in range(set_length):
-        cast_tup = tuple(cast_plate_row)
-        cast_id_table.append(cast_tup)
+    for k, v in cast_plate_dict.items():
+        print k
+    cast_plate_row = (cast_plate_dict['Plate_Barcode'],'' , '', str(cast_plate_dict['Contact_ID_Study_Acronym']), str(cast_plate_dict['Contact_Person']),
+                    str(cast_plate_dict['Contact_Email']), str(cast_plate_dict['Project_Type']),
+                    str(cast_plate_dict['Plate_Name']), str(cast_plate_dict['Plate_Description']),"","","","","","","","")
+ #   for i in range(set_length):
+    cast_tup = tuple(cast_plate_row)
+    cast_id_table.append(cast_tup)
 
     return(carrier_id_table, caid_id_table, cast_id_table)
 
