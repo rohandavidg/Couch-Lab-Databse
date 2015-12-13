@@ -45,11 +45,3 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-
-*.xls
-*.ipynb
-*.pyc
-*.accdb
-*.xlsx
-*.log
-input

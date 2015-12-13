@@ -55,6 +55,8 @@ def main():
     logger = configure_logger()
     submission_manifest = sys.argv[1]
     run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table)
+    odbc = show_odbc_sources()
+    carrier_id_number = ping_database()
 
 
 def run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table):
@@ -157,6 +159,41 @@ def get_each_data_fields(sheet, new_header, x, y):
     return dict_list
 
 
+#def show_odbc_sources():
+#    sources = pyodbc.dataSources()
+#    dsns = sources.keys()
+#    dsns.sort()
+#    sl = []
+#    for dsn in dsns:
+#        sl.append('%s [%s]' % (dsn, sources[dsn]))
+#    print('\n'.join(sl))
+
+
+#def ado():
+#        '''
+#    connect with com dispatch objs
+#    '''
+#    conn = win32com.client.Dispatch(r'ADODB.Connection')
+#    DSN = ('PROVIDER = Microsoft.Jet.OLEDB.4.0;DATA SOURCE = ' + db +  ';')
+#    conn.Open(DSN)
+#    rs = win32com.client.Dispatch(r'ADODB.Recordset')
+#    strsql = "select * from deer"
+#    rs.Open(strsql, conn, 1, 3)
+#    t = rs.GetRows()
+#    conn.Close()
+#    return t
+
+
+    
+#def ping_database():
+#    conn = pyodbc.connect(r'Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=CARRIERS_SubManifestOnly.accdb;')
+#   conn = pyodbc.connect(r';DBQ=CARRIERS_SubManifestOnly.accdb;')
+#    cur =  conn.cursor()
+#    sql = """SELECT * FROM CARRIERS ID WHERE CARRIERS ID LIKE '%CA%'"""
+#    cur.execute(sql)
+#    for d in cur.description:
+#        print d[0]
+
 
 def generate_carrier_id(Sample_Name, logger, a):
     list_length  = len(Sample_Name)
@@ -188,12 +225,9 @@ def create_tuple_output(carrierID_dict, caid_plate_dict, cast_plate_dict, sample
             caid_tup = caid_id_string[:3] + tuple(caid_id_string[-1].split(",")[:-2]) + tuple([caid_id_string[-1].split(',')[-1]]) + tuple('')
             caid_id_table.append(caid_tup)
 
-    for k, v in cast_plate_dict.items():
-        print k
     cast_plate_row = (cast_plate_dict['Plate_Barcode'],'' , '', str(cast_plate_dict['Contact_ID_Study_Acronym']), str(cast_plate_dict['Contact_Person']),
                     str(cast_plate_dict['Contact_Email']), str(cast_plate_dict['Project_Type']),
                     str(cast_plate_dict['Plate_Name']), str(cast_plate_dict['Plate_Description']),"","","","","","","","")
- #   for i in range(set_length):
     cast_tup = tuple(cast_plate_row)
     cast_id_table.append(cast_tup)
 
@@ -218,9 +252,7 @@ def generate_excel_output(carrier_output_table, carrier_headers, carrier_id_tabl
     ws.set_panes_frozen(True)
     ws.set_horz_split_pos(rowx+1)
     ws.set_remove_splits(True)
- #   wb.save("carriers.xls")
     ws = wb.add_sheet(caid_cast_output_table)
-#   ws = wb.add_sheet(cast_input)
     heading_xf = xlwt.easyxf('font: bold on; align: wrap on, vert centre, horiz center')
     rowx = 0
     for colx, value in enumerate(caid_cast_header):
