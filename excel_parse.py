@@ -56,7 +56,7 @@ def main():
     submission_manifest = sys.argv[1]
     run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table)
     odbc = show_odbc_sources()
-    carrier_id_number = ping_database()
+    carrier_id_number = connect_db()
 
 
 def run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table):
@@ -159,40 +159,26 @@ def get_each_data_fields(sheet, new_header, x, y):
     return dict_list
 
 
-#def show_odbc_sources():
-#    sources = pyodbc.dataSources()
-#    dsns = sources.keys()
-#    dsns.sort()
-#    sl = []
-#    for dsn in dsns:
-#        sl.append('%s [%s]' % (dsn, sources[dsn]))
-#    print('\n'.join(sl))
+def show_odbc_sources():
+    sources = pyodbc.dataSources()
+    dsns = sources.keys()
+    dsns.sort()
+    sl = []
+    for dsn in dsns:
+        sl.append('%s [%s]' % (dsn, sources[dsn]))
+    print('\n'.join(sl))
 
 
-#def ado():
-#        '''
-#    connect with com dispatch objs
-#    '''
-#    conn = win32com.client.Dispatch(r'ADODB.Connection')
-#    DSN = ('PROVIDER = Microsoft.Jet.OLEDB.4.0;DATA SOURCE = ' + db +  ';')
-#    conn.Open(DSN)
-#    rs = win32com.client.Dispatch(r'ADODB.Recordset')
-#    strsql = "select * from deer"
-#    rs.Open(strsql, conn, 1, 3)
-#    t = rs.GetRows()
-#    conn.Close()
-#    return t
+def connect_db():
+    DBfile = 'c:\\Users\m149947\Desktop\couch\CARRIERS\database\CARRIERS_SubManifestOnly.accdb'
+    conn = pyodbc.connect('DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ='+DBfile)
+    cursor = conn.cursor()
+    SQL = 'SELECT * FROM "CARRIERS ID";'
+    for row in cursor.execute(SQL): # cursors are iterable
+        print row
+    cursor.close()
+    conn.close()
 
-
-    
-#def ping_database():
-#    conn = pyodbc.connect(r'Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=CARRIERS_SubManifestOnly.accdb;')
-#   conn = pyodbc.connect(r';DBQ=CARRIERS_SubManifestOnly.accdb;')
-#    cur =  conn.cursor()
-#    sql = """SELECT * FROM CARRIERS ID WHERE CARRIERS ID LIKE '%CA%'"""
-#    cur.execute(sql)
-#    for d in cur.description:
-#        print d[0]
 
 
 def generate_carrier_id(Sample_Name, logger, a):
