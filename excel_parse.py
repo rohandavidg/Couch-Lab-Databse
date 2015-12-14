@@ -56,7 +56,6 @@ def main():
     submission_manifest = sys.argv[1]
     run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table)
     odbc = show_odbc_sources()
-    carrier_id_number = connect_db()
 
 
 def run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table):
@@ -65,7 +64,9 @@ def run(submission_manifest, logger, carrier_headers, carrier_output_table, caid
     fields_header = get_data_fields_header(manifest) 
     index = data_fields_index(manifest)
     carrierID_field, caid_plate_field, carrier_sample =  sample_data(manifest, fields_header, index)
-    create_carrier_ID, sample_number = generate_carrier_id(carrier_sample, logger, a)
+    carrier_id_number = connect_db(logger)
+    print carrier_id_number
+    create_carrier_ID, sample_number = generate_carrier_id(carrier_sample, logger, carrier_id_number)
     carrier_tuple_output, caid_tuple_output, cast_tuple_output = create_tuple_output(carrierID_field, caid_plate_field, cast_plate_dict, create_carrier_ID, sample_number)
     excel_output = generate_excel_output(carrier_output_table,carrier_headers, carrier_tuple_output, caid_cast_output_table, caid_cast_header,
                                         caid_tuple_output, cast_plate_output_table, cast_plate_header, cast_tuple_output)
@@ -159,6 +160,7 @@ def get_each_data_fields(sheet, new_header, x, y):
     return dict_list
 
 
+
 def show_odbc_sources():
     sources = pyodbc.dataSources()
     dsns = sources.keys()
@@ -169,25 +171,37 @@ def show_odbc_sources():
     print('\n'.join(sl))
 
 
-def connect_db():
+def connect_db(logger):
     DBfile = 'c:\\Users\m149947\Desktop\couch\CARRIERS\database\CARRIERS_SubManifestOnly.accdb'
     conn = pyodbc.connect('DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ='+DBfile)
     cursor = conn.cursor()
     SQL = 'SELECT * FROM "CARRIERS ID";'
+    carrier_id_db = []
     for row in cursor.execute(SQL): # cursors are iterable
-        print row
+        carrier_id_db.append(row[0])
+
+
+    for i, x  in enumerate(sorted(carrier_id_db)):
+        if i == len(carrier_id_db) -1:
+            last_carrier_id = x
+            logger.info('Last carrrier Id in the Database: %s', last_carrier_id)
+            return last_carrier_id
     cursor.close()
     conn.close()
 
 
 
-def generate_carrier_id(Sample_Name, logger, a):
+def generate_carrier_id(Sample_Name, logger, last_carrier_id):
     list_length  = len(Sample_Name)
     set_length = len(set(Sample_Name))
     assert list_length == set_length
     logger.info("number of samples in manifest %s", list_length)
     logger.info("number of unique samples in manifest %s", set_length)
-    carrier_trunk = ["{0:08}".format(num) for num in xrange(a+1, set_length +1)]
+    digit_field_list = [i for i in last_carrier_id.encode('ascii','ignore') if i.isdigit()]
+    digit_field = ''.join(digit_field_list)
+    non_zero_number_list = [ i for i in digit_field if i != '0']
+    non_zero_number = ''.join(non_zero_number_list)
+    carrier_trunk = ["{0:08}".format(num) for num in xrange(int(digit_field) +1, int(non_zero_number) + set_length +1)]
     carrier_id = [''.join("CA" + str(i)) for i in carrier_trunk]
     sample_name_carrier_id = dict(zip(Sample_Name,carrier_id))
     return sample_name_carrier_id, set_length
