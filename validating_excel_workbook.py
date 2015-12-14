@@ -13,21 +13,27 @@ from excel_parse import record
 from excel_parse import get_each_data_fields
 
 
-sample_status_accepted_values = [ 'Case', 'Control', 'Proband', 'Family member']
+logger_filename = "validation_info.log"
+sample_status_accepted_values = [ 'Case', 'Control', 'Proband', 'Family Member']
 sub_race_values = ['Hispanic or Latino', 'Unknown', 'Non-Hispanic/Latino']
+sub_gender_values = ['M', 'F']
+sub_ethnicity_values = ['White', 'Black or African American', 'Asian']
 
 
 def main():
-    logger = configure_logger()
     excel_parsed_manifest = sys.argv[1]
-    run(excel_parsed_manifest, logger, sample_status_accepted_values, sub_race_values)
+    run(excel_parsed_manifest, sample_status_accepted_values,
+        sub_race_values, sub_gender_values, sub_ethnicity_values)
 
     
-def run(excel_parsed_manifest, logger, sample_status_accepted_values, sub_race_values):
+def run(excel_parsed_manifest, sample_status_accepted_values,
+        sub_race_values, sub_gender_values, sub_ethnicity_values):
+    logger = configure_logger(logger_filename)
     carrier_id_sheet, caid_cast_sheet, cast_plate_sheet = get_excel_sheet(excel_parsed_manifest, logger)
     carrier_id_field_type = check_fields(carrier_id_sheet, logger)
     carrier_id_record = index_row_header(carrier_id_sheet, logger)
-    validate_carrier_record = carrier_id_validate(carrier_id_record, logger, sample_status_accepted_values, sub_race_values)
+    validate_carrier_record = carrier_id_validate(carrier_id_record, logger, sample_status_accepted_values,
+                                                  sub_race_values, sub_gender_values, sub_ethnicity_values)
     
     
 def get_excel_sheet(manifest, logger):
@@ -69,25 +75,44 @@ def index_row_header(sheet, logger):
     return target
 
 
-def carrier_id_validate(target, logger, sample_status_accepted_values, sub_race_values):
-    for l in target:
-        try:
-            sample_status_drop_down = check_lookup_values(l.Sub_Sample_Status.encode('ascii','ignore'), sample_status_accepted_values, logger)
-        except AttributeError:
-            logger.warn("Number found in text field: %s", l.Sub_Sample_Status)
+def carrier_id_validate(target, logger, sample_status_accepted_values, sub_race_values,
+                        sub_gender_values, sub_ethnicity_values):
+    for l, x in enumerate(target):
+        sample_status_drop_down = check_drop_down(x.Sub_Sample_Status, sample_status_accepted_values, logger, l+2, "sample_status")
+        sub_race_drop_down = check_drop_down(x.Sub_Race, sub_race_values, logger, l+2, "Sub_race") 
+        sub_gender_drop_down = check_drop_down(x.Sub_Gender, sub_gender_values, logger, l+2, "Sub_Gender")
+        sub_ethnicity_drop_down = check_drop_down(x.Sub_Ethnicity, sub_ethnicity_values, logger, l+2, "Sub_Ethnicity")
+        Disease_type = check_is_number(x.Sub_Disease_Type, logger, l+2, "Sub_Disease_Type")        
+        induvidual_id = check_is_number(x.Sub_Individual_ID, logger, l+2, "Sub_Induvidual_ID")
+        sample_name = check_is_number(x.Sub_Sample_Name, logger, l+2, "Sub_Sample_Name")
+        mother_id = check_is_number(x.Sub_Mother_ID, logger, l+2, "Sub_Mother_ID")
+        father_id = check_is_number(x.Sub_Father_ID, logger, l+2, "Sub_Father_ID")
+        pedigree_id = is_number(x.Sub_Pedigree)
+        if pedigree_id != True:
+            logger.debug("Number found in text field: %s : in row %s : Coulumn name Sub_Pedigree", x.Sub_Pedigree, l+2)
 
-        try:
-            sub_race_drop_down = check_lookup_values(l.Sub_Race.encode('ascii','ignore'), sub_race_values, logger) 
-        except AttributeError:
-            logger.warn("Number found in text field: %s", l.Sub_Race)
             
+def check_drop_down(value, look_up_list, logger, number, column_name):
+    try:
+        field_drop_down = check_lookup_values(value.encode('ascii','ignore'), look_up_list, logger, number, column_name)
+    except AttributeError:
+        logger.debug("Number found in text field: %s : in row %s : Column name : %s", value, number, column_name)
 
-def check_lookup_values(sample_value, sample_value_lookup, logger):
-    for i in xrange(len(sample_value_lookup)):
-        if sample_value != sample_value_lookup[i]:
-            logger.warn("Not an accepted value: %s", sample_value)
-        else:
-            pass
+
+        
+def check_is_number(value, logger, number, column_name):
+    field = is_number(value.encode('ascii','ignore'))
+    if field != False:
+        logger.debug("Number found in text field: %s : in row %s : Coulumn name %s", value, number, column_name)
+    else:
+        pass
+
+
+def check_lookup_values(sample_value, sample_value_lookup, logger, row_number, column_name):
+    if sample_value not in sample_value_lookup:
+        logger.debug("value not in lookup: %s : in row number %s : Column name %s", sample_value, row_number, column_name)
+    else:
+        pass
 
         
         
@@ -104,13 +129,6 @@ def is_number(s):
     return True
                                 
         
-        
-
-#def check_digits(value):
-#    if value.isdigit():
-#        return int(value)
-#    else:
-#        pass
         
 
 if __name__ == '__main__':
