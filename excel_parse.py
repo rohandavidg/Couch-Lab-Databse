@@ -7,7 +7,7 @@ and create three excel files based on the Jenna's database schema
 
 import xlrd
 import xlwt
-from ctypes import *
+import ctypes
 from xlrd.sheet import ctype_text
 import win32com.client as win32
 import platform
@@ -18,7 +18,8 @@ import logging.config
 import re
 import sys
 
-a =0
+
+logger_filename = "Three_table_info.log"
 carrier_headers = ('CARRIERS ID', 'Sub_Sample Name', 'Sub_Individual ID', 'Sub_Gender', 'Sub_Sample Status','Sub_Pedigree', 'Sub_Mother ID', 'Sub_Father ID', 'Sub_Disease Type',
                      'Sub_Race', 'Sub_Ethnicity', 'CARRIERS ID Comment')
 carrier_output_table = "carrier_ID"
@@ -40,11 +41,11 @@ class record(object):
         return '%s(%r)' % (self.__class__.__name__, self.__dict__) 
 
 
-def configure_logger():
+def configure_logger(logger_filename):
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    handler = logging.FileHandler('parsing_excel.log')
-    handler.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(logger_filename)
+    handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -52,20 +53,21 @@ def configure_logger():
 
 
 def main():
-    logger = configure_logger()
     submission_manifest = sys.argv[1]
-    run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table)
+    run(logger_filename, submission_manifest, carrier_headers, carrier_output_table,
+        caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table)
     odbc = show_odbc_sources()
 
 
-def run(submission_manifest, logger, carrier_headers, carrier_output_table, caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table):
+def run(logger_filename, submission_manifest, carrier_headers, carrier_output_table,
+        caid_cast_header, caid_cast_output_table, cast_plate_header, cast_plate_output_table):
+    logger = configure_logger(logger_filename)
     manifest = get_excel_sheet(submission_manifest, logger)
     cast_plate_dict = create_cast_plate(manifest)
     fields_header = get_data_fields_header(manifest) 
     index = data_fields_index(manifest)
     carrierID_field, caid_plate_field, carrier_sample =  sample_data(manifest, fields_header, index)
     carrier_id_number = connect_db(logger)
-    print carrier_id_number
     create_carrier_ID, sample_number = generate_carrier_id(carrier_sample, logger, carrier_id_number)
     carrier_tuple_output, caid_tuple_output, cast_tuple_output = create_tuple_output(carrierID_field, caid_plate_field, cast_plate_dict, create_carrier_ID, sample_number)
     excel_output = generate_excel_output(carrier_output_table,carrier_headers, carrier_tuple_output, caid_cast_output_table, caid_cast_header,
@@ -236,6 +238,11 @@ def create_tuple_output(carrierID_dict, caid_plate_dict, cast_plate_dict, sample
 
 def generate_excel_output(carrier_output_table, carrier_headers, carrier_id_table, caid_cast_output_table,caid_cast_header,
                             caid_id_table, cast_plate_output_table, cast_plate_header, cast_id_table):
+
+    """
+    generating the three table outout
+    """
+    
     wb = xlwt.Workbook()
     ws = wb.add_sheet(carrier_output_table)
 
@@ -284,5 +291,8 @@ def generate_excel_output(carrier_output_table, carrier_headers, carrier_id_tabl
 
     wb.save("carriers.xls")
 
+    MessageBox = ctypes.windll.user32.MessageBoxA
+    MessageBox(None, 'Excel files Generated: Check There_table_info.log', 'Couch Lab Database',0)
+    
 if __name__ == '__main__':
     main()

@@ -81,6 +81,7 @@ def carrier_id_validate(target, logger, sample_status_accepted_values, sub_race_
         except AttributeError:
             logger.warn("Number found in text field: %s", l.Sub_Race)
             
+
 def check_lookup_values(sample_value, sample_value_lookup, logger):
     for i in xrange(len(sample_value_lookup)):
         if sample_value != sample_value_lookup[i]:
