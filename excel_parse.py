@@ -17,9 +17,11 @@ import logging
 import logging.config
 import re
 import sys
+import datetime
 
+current_date = datetime.date.today()
 
-logger_filename = "Three_table_info.log"
+logger_filename = "Three_table_info-" + str(current_date) + ".log"
 carrier_headers = ('CARRIERS ID', 'Sub_Sample Name', 'Sub_Individual ID', 'Sub_Gender', 'Sub_Sample Status','Sub_Pedigree', 'Sub_Mother ID', 'Sub_Father ID', 'Sub_Disease Type',
                      'Sub_Race', 'Sub_Ethnicity', 'CARRIERS ID Comment')
 carrier_output_table = "carrier_ID"
@@ -29,7 +31,7 @@ caid_cast_header = ('CAID_CAST_KEY', 'CARRIERS ID', 'CAST Barcode', 'Sub_Coord',
 caid_cast_output_table = 'CAID_CAST'
 
 cast_plate_header = ('CAST Barcode', 'CAST Plate/Box', 'Date Received', 'Sub_Contact ID', 'Sub_Contact_Person','Sub_Contact E-mail', 'Sub_Project Type', 'Sub_Plate Name',
-                     'Sub_Plate Description', 'CAST PLate comment')
+                     'Sub_Plate Description', 'CAST Plate Location', 'CAST Plate comment')
 cast_plate_output_table = 'CAST Plate'
 
 
@@ -42,11 +44,11 @@ class record(object):
 
 
 def configure_logger(logger_filename):
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('Couchlab')
     logger.setLevel(logging.DEBUG)
     handler = logging.FileHandler(logger_filename)
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s'\t'%(name)s'\t'%(levelname)s'\t'%(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
