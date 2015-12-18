@@ -27,7 +27,7 @@ sample_status_accepted_values = [ 'Case', 'Control', 'Proband', 'Family Member']
 sub_race_values = ['Hispanic or Latino', 'Unknown', 'Non-Hispanic/Latino']
 sub_gender_values = ['M', 'F']
 sub_ethnicity_values = ['White', 'Black or African American', 'Asian', 'Unknown']
-sub_sample_blank_values = ['Yes', 'null', 'Null', 'yes']
+sub_sample_blank_values = ['null', 'Null', '']
 sub_project_type_values = ['Family', 'Case-Control']
 cast_plate_box_values = ['Plate', 'Box']
 required_field_list = ['CAST Barcode', 'CAST Plate/Box', 'Date Received', 'Sub_Contact ID', 'Sub_Contact Person',
@@ -153,8 +153,11 @@ def check_unique_instance(dict_list, new_unique_header, logger, table_name, valu
                 if d[i] not in unique_list:
                     unique_list.append(d[i])
                 else:
-                    logger.debug("Non-unique value found : %s : in row %s : Column name %s : Table Name %s", d[i], x+1, i, table_name)
-
+                    if table_name =='CAID_CAST' and i == "CAST_Barcode":
+                        pass
+                    else:
+                        logger.debug("Non-unique value found : %s : in row %s : Column name %s : Table Name %s", d[i], x+1, i, table_name)
+                        
                     
 def get_modified_required_list(required_field_list):
     modified_required_list = modify_header(required_field_list)
@@ -254,7 +257,9 @@ def caid_cast_validate(target, logger, sub_sample_blank_values, table_name, modi
         sub_conc = check_is_number_true(x.Sub_Conc, logger, l+2, "Sub_Conc", table_name)
         sub_vol = check_is_number_true(x.Sub_Vol, logger, l+2, "Sub_Vol", table_name)
         sub_alias = check_is_number(x.Sub_Alias, logger, l+2, "Sub_Alias", table_name, modified_required_list)
-
+        sub_sample_blank = check_drop_down(x.Sub_Sample_Blank, sub_sample_blank_values, logger, l+2, "Sub_Sample_Blank",
+                                           table_name, modified_required_list) 
+        
 
 def check_cast_barcode(cast_barcode,logger,  number, column_name, table_name):
     try:
