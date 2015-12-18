@@ -1,8 +1,10 @@
 #!/cygdrive/c/Users/m149947/AppData/Local/Continuum/Anaconda2-32/python
 
 """
+
 This scripts validates each field in the each
 induvidual excel tables 
+
 """
 
 import xlrd
@@ -10,18 +12,19 @@ import xlwt
 import sys
 import logging
 import pprint
-from ctypes import *
+import ctypes
 import win32com.client as win32
 from excel_parse import configure_logger
 from excel_parse import record
 from excel_parse import get_each_data_fields
 import datetime 
 import re
+import os
 
 
 
+current_dir = os.path.dirname(os.path.realpath(__file__))
 current_date = datetime.date.today()
-
 logger_filename = "validation_info-" + str(current_date) + ".log"
 sample_status_accepted_values = [ 'Case', 'Control', 'Proband', 'Family Member']
 sub_race_values = ['Hispanic or Latino', 'Unknown', 'Non-Hispanic/Latino']
@@ -49,6 +52,7 @@ def run(excel_parsed_manifest, sample_status_accepted_values,
         sub_race_values, sub_gender_values, sub_ethnicity_values,
         sub_sample_blank_values, sub_project_type_values, cast_plate_box_values,
         required_field_list):
+    check_log = clean_logfile(current_dir, logger_filename)
     logger = configure_logger(logger_filename)
     workbook, carrier_id_sheet, caid_cast_sheet, cast_plate_sheet = get_excel_sheet(excel_parsed_manifest,
                                                                                     logger)
@@ -72,6 +76,15 @@ def run(excel_parsed_manifest, sample_status_accepted_values,
     solve_date = get_date_field(workbook, cast_plate_sheet, logger, "CAST Plate")
     validate_cast_plate_record = cast_plate_validate(cast_plate_record, logger,
                                                      sub_project_type_values, cast_plate_box_values, "CAST Plate", modified_required_field)
+
+def clean_logfile(current_dir, logger_filename):
+    log_file = os.path.join(current_dir, logger_filename)
+    if os.path.isfile(log_file):
+        MessageBox = ctypes.windll.user32.MessageBoxA 
+        MessageBox(None, 'Removing old log file', 'Couch Lab Database',0)
+        os.remove(log_file)
+    else:
+        pass
     
     
 def get_excel_sheet(manifest, logger):
@@ -81,9 +94,9 @@ def get_excel_sheet(manifest, logger):
     CARRIERS_ID_sheet = workbook.sheet_by_index(0)
     CAID_CAST_sheet = workbook.sheet_by_index(1)
     CAST_plate_sheet = workbook.sheet_by_index(2)
-#    sys.stdout.write('%s -> CARRIERS ID table \n ' % (sheet_names[0]))
-#    sys.stdout.write('%s -> CAID_CAST table \n' % (sheet_names[1]))
-#    sys.stdout.write('%s -> CAST_plate ID table \n ' % (sheet_names[2]))    
+    sys.stdout.write('%s -> CARRIERS ID table \n ' % (sheet_names[0]))
+    sys.stdout.write('%s -> CAID_CAST table \n' % (sheet_names[1]))
+    sys.stdout.write('%s -> CAST_plate ID table \n ' % (sheet_names[2]))    
     return (workbook,CARRIERS_ID_sheet, CAID_CAST_sheet, CAST_plate_sheet)
 
 
@@ -161,7 +174,6 @@ def check_unique_instance(dict_list, new_unique_header, logger, table_name, valu
                     
 def get_modified_required_list(required_field_list):
     modified_required_list = modify_header(required_field_list)
-    print modified_required_list
     return modified_required_list
 
 
@@ -192,9 +204,7 @@ def check_drop_down(value, look_up_list, logger, number, column_name, table_name
 
 
 def log_required_field(modified_required_list,value, logger, number, column_name, table_name):
-    print column_name
     if column_name in modified_required_list:
-        print column_name
         logger.debug("Number found in text field: %s : in row %s : Column name %s : Table Name %s",value, number, column_name, table_name)
     else:
         logger.warn("Number found in text field: %s : in row %s : Column name %s : Table Name %s", value, number, column_name, table_name)
@@ -206,12 +216,10 @@ def check_is_number(value, logger, number, column_name, table_name, modified_req
         field = is_number(value.encode('ascii','ignore'))
         if field != False:
             log_required_field(modified_required_list, value, logger, number, column_name, table_name)
-#            logger.debug("Number found in text field: %s : in row %s : Column name %s : Table Name %s", value, number, column_name, table_name)
         else:
             pass
     except AttributeError:
         log_required_field(modified_required_list, value, logger, number, column_name, table_name)
-#        logger.debug("Number found in text field: %s : in row %s : Column name %s : Table Name %s", value, number, column_name, table_name)
 
         
 def check_is_number_true(value, logger, number, column_name, table_name):
@@ -228,7 +236,6 @@ def check_is_number_true(value, logger, number, column_name, table_name):
 def check_lookup_values(sample_value, sample_value_lookup, logger, row_number, column_name, table_name, modified_required_list):
     if sample_value not in sample_value_lookup:
         if column_name in modified_required_list:
-            print column_name
             logger.debug("value not in lookup: %s : in row number %s : Column name %s : Table Name %s", sample_value, row_number, column_name, table_name)            
         else:
             logger.warn("value not in lookup: %s : in row number %s : Column name %s : Table Name %s", sample_value, row_number, column_name, table_name)            

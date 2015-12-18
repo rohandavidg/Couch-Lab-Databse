@@ -9,18 +9,22 @@ import pyodbc
 import pprint
 import logging
 import win32com.client as win32
+import ctypes
 import sys
 from excel_parse import configure_logger
 import datetime
 import xlrd
+import os
 from validating_excel_workbook import get_excel_sheet
+import subprocess
 
 
 current_date = datetime.date.today()
 
 logger_filename = "run_import-" + str(current_date) + ".log"
 
-#carrier_headers = 
+current_dir = os.path.dirname(os.path.realpath(__file__))
+ 
 
 def main():
     excel_workbook = sys.argv[1]
@@ -29,17 +33,43 @@ def main():
     
 def run(excel_workbook, logger_filename):
     logger = configure_logger(logger_filename)
+    check_log = check_validation_log(current_dir)
     workbook, carrier_id_sheet, caid_cast_sheet, cast_plate_sheet = get_excel_sheet(excel_workbook, logger)
-    import_carrier_id_table = connect_to_access(carrier_id_sheet)
+    import_carrier_id_table = connect_to_access(carrier_id_sheet, caid_cast_sheet, cast_plate_sheet)
 
+
+def check_validation_log(current_dir):
+    items = os.listdir(current_dir)
+    log_file = []
+    for names in items:
+        if names.startswith("validation") and names.endswith(".log"):
+            log_file.append(os.path.join(current_dir, names))
+
+    for path in log_file:
+        with open(path) as pin:
+            r = pin.read()
+            if "DEBUG" in r:
+                MessageBox = ctypes.windll.user32.MessageBoxA
+                MessageBox(None, 'validation log file has "DEBUG" messages', 'Couch Lab Database',0)
+                sys.exit("files did not validate")
+            else:
+                pass
+    
     
 def connect_to_access(carrier_id_sheet, caid_cast_sheet, cast_plate_sheet):
     DBfile = 'c:\\Users\m149947\Desktop\couch\CARRIERS\database\CARRIERS_SubManifestOnly.accdb'
     conn = pyodbc.connect('DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ='+DBfile)
     cursor = conn.cursor()
-    carriers_id_table = import_carriers_id_table(cursor, carrier_id_sheet)
-    caid_cast_table = import_caid_cast_table(cursor, caid_cast_sheet)
-    cast_plate_table = import_cast_plate(cursor, cast_plate_sheet)
+    try:
+        carriers_id_table = import_carriers_id_table(cursor, carrier_id_sheet)
+        caid_cast_table = import_caid_cast_table(cursor, caid_cast_sheet)
+        cast_plate_table = import_cast_plate(cursor, cast_plate_sheet)
+    except pyodbc.IntegrityError:
+        MessageBox = ctypes.windll.user32.MessageBoxA
+        MessageBox(None, "ERROR: ATTEMPTING TO OVERWRITE EXISTING ENTRIES, EXIT IMMEDIATLEY" , 'Couch Lab Database',0)
+        sys.exit()
+    MessageBox = ctypes.windll.user32.MessageBoxA
+    MessageBox(None, 'SUCCESS!!!Tables have been imported', 'Couch Lab Database',0)
     cursor.close()
     conn.commit()
     conn.close()
