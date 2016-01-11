@@ -55,4 +55,7 @@ Temporary Items
 *~
 presentation
 acc_database
-input
+inputbuild
+dist
+scripts/build/
+scripts/dist
