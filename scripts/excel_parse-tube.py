@@ -6,7 +6,7 @@ This script is going to do magic
 
 import logging
 import re
-import pprint
+import pprint 
 import xlrd
 import xlwt
 import win32com.client  as win32
@@ -40,24 +40,23 @@ def run(submission_manifest):
     data_headers, data_row = get_data_headers(manifest, regex)    
     carrier_table_headers, caid_cast_headers = get_confusing_header(data_headers, carrier_id_table_name_fields,
                                                  caid_plate_table_fields)
-    print carrier_table_headers
     get_data_index = data_fields_index(manifest, data_row)
     carriers_dict, caid_plate_dict, carrier_sample  = sample_data(manifest,
                                                                   data_headers,
                                                                   get_data_index,
                                                                   carrier_table_headers,
                                                                   caid_cast_headers)
-    print caid_plate_dict
+    pprint.pprint(carriers_dict)
     cast_tuple_output, contact_id = cast_plate_parse(manifest)
     carrier_id_number = connect_db(logger)
     create_carrier_ID, sample_number = generate_carrier_id(carrier_sample, logger, carrier_id_number)
-#    carrier_tuple_output, caid_tuple_output =  create_tuple_output(carriers_dict, caid_plate_dict,
-#                                                                   create_carrier_ID, sample_number)
+    carrier_tuple_output, caid_tuple_output =  create_tuple_output(carriers_dict, caid_plate_dict,
+                                                                   create_carrier_ID, sample_number)
 
-#    excel_output = generate_excel_output(carrier_output_table, carrier_headers, carrier_tuple_output,
-#                                         caid_cast_output_table, caid_cast_header,
-#                                         caid_tuple_output, cast_plate_output_table,
-#                                         cast_plate_header, cast_tuple_output, current_date, contact_id)
+    excel_output = generate_excel_output(carrier_output_table, carrier_headers, carrier_tuple_output,
+                                         caid_cast_output_table, caid_cast_header,
+                                         caid_tuple_output, cast_plate_output_table,
+                                         cast_plate_header, cast_tuple_output, current_date, contact_id)
     
 def get_data_headers(sheet, regex):
     """
@@ -153,7 +152,6 @@ def create_tuple_output(carrierID_dict, caid_plate_dict, sample_name_carrier_id,
 
 
     for caid_key, caid_value in caid_plate_dict.items():
-        print caid_key
         if sample_name_carrier_id[caid_key]:
             caid_id_string = ('', str(sample_name_carrier_id[caid_key]),
                               '', ','.join(str(i) for i in caid_value))
