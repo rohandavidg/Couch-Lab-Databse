@@ -23,7 +23,7 @@ import collections
 date = datetime.date.today()
 box_manifest = "../input/box_stock_manifest.headers" 
 plate_manifest = "../input/plate_stock_manifest.headers"
-logger_filename = "RedCap_formatter-" + str(current_date) + ".log"
+logger_filename = "RedCap_formatter-" + str(date) + ".log"
 regex = r'[?|*|.|!|(|)|/|-]'
 redcap_mapping_file = "../input/redcap_mapping_file.tsv"
 
@@ -43,7 +43,7 @@ def run(submission_manifest):
     sample_name, annotate_excel_file_dict = sample_data(manifest, excel_headers,
                                                         get_data_index, header_mapper_dict)
     red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest, plate_manifest)
-    plate_headers_create = plate_headers_dict(manifest, sample_name)
+    plate_headers_create = plate_headers_dict(check_manifest, manifest, sample_name)
     contact_dict = normalize_all_dict(manifest, sample_name, red_cap_empty_fields)
     combination_dict = combine_contact_annotate(check_manifest, annotate_excel_file_dict,
                                                 contact_dict, plate_headers_create)
@@ -117,10 +117,11 @@ class headers:
     
     def get_acs_dict(self, regex):
         with open(self.header_file) as f:
-            for raw_line in f:                                      
+            for raw_line in f:
+                line = raw_line.strip().split("\t")
                 value_3 = re.sub(regex,r'',
                                  line[4].encode('ascii', 'ignore')).strip().replace(" ", "_")
-                self.headers_dict[value_3] = line[5]
+                self.acs_dict[value_3] = line[5]
         return self.acs_dict
         
 
@@ -296,17 +297,20 @@ def empty_dict(fork, box_manifest, plate_manifest):
         return redcap_empty_list, plate_headers
 
 
-def plate_headers_dict(sheet, sample_name):
-    info = contact(sheet)    
-    plate_name = info.get_plate_name()
-    plate_desc = info.get_plate_description()
-    ranges = [(n, min(n+96, len(sample_name))) for n in xrange(0, len(sample_name), 96)]    
-    plate_head_dict = {}
-    for i, x in enumerate(ranges):
-        for y in xrange(x[0], x[1]):
-            plate_head_dict[sample_name[y]] = [{'sub_plate_name': plate_name['sub_plate_name'][i]},
-                                               {'sub_plate_desc': plate_desc['sub_plate_desc'][i]}]
-    return plate_head_dict
+def plate_headers_dict(fork, sheet, sample_name):
+    if fork == "plate_manifest":
+        info = contact(sheet)    
+        plate_name = info.get_plate_name()
+        plate_desc = info.get_plate_description()
+        ranges = [(n, min(n+96, len(sample_name))) for n in xrange(0, len(sample_name), 96)]    
+        plate_head_dict = {}
+        for i, x in enumerate(ranges):
+            for y in xrange(x[0], x[1]):
+                plate_head_dict[sample_name[y]] = [{'sub_plate_name': plate_name['sub_plate_name'][i]},
+                                                   {'sub_plate_desc': plate_desc['sub_plate_desc'][i]}]
+        return plate_head_dict
+    else:
+        pass
 
     
 def normalize_all_dict(sheet, sample_name, redcap_empty_list):
