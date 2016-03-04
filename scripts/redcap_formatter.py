@@ -44,6 +44,7 @@ def run(submission_manifest):
                                                         get_data_index, header_mapper_dict)
     red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest, plate_manifest)
     plate_headers_create = plate_headers_dict(check_manifest, manifest, sample_name)
+    pprint.pprint(plate_headers_create['1329705169'])
     contact_dict = normalize_all_dict(manifest, sample_name, red_cap_empty_fields)
     combination_dict = combine_contact_annotate(check_manifest, annotate_excel_file_dict,
                                                 contact_dict, plate_headers_create)
@@ -275,8 +276,7 @@ def sample_data(sheet, header, data_index, header_dict):
     for l in target:
         if l.Sample_Name != '' and l.Sample_Name != 'Sample Name *':
             sample_name.append(l.Sample_Name)
-#            abl_data_dict[l.Sample_Name] = [{i:l.__dict__.get(i)} for i in header]
-            abl_data_dict[l.Sample_Name] = [{header_dict[k]:v} for k, v in l.__dict__.iteritems() if k in header_dict.keys()]                
+            abl_data_dict[l.Sample_Name] = [{header_dict[k]:v} for k, v in l.__dict__.iteritems() if k in header_dict.keys()]
     return sample_name, abl_data_dict
 
 
@@ -285,7 +285,7 @@ def empty_dict(fork, box_manifest, plate_manifest):
     if fork == "box_manifest" or fork == "acs_manifest":
         header = headers(box_manifest)
         box_headers = header.index_headers()
-        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + box_headers[-6:]
+        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-6:]
         redcap_empty_list = [{k:""} for k in empty_box_headers]
         return redcap_empty_list, box_headers
     else:
@@ -298,20 +298,21 @@ def empty_dict(fork, box_manifest, plate_manifest):
 
 
 def plate_headers_dict(fork, sheet, sample_name):
+    plate_head_dict = {}
     if fork == "plate_manifest":
         info = contact(sheet)    
         plate_name = info.get_plate_name()
         plate_desc = info.get_plate_description()
-        ranges = [(n, min(n+96, len(sample_name))) for n in xrange(0, len(sample_name), 96)]    
-        plate_head_dict = {}
+        ranges = [(n, min(n+95, len(sample_name))) for n in xrange(0, len(sample_name), 95)]
         for i, x in enumerate(ranges):
             for y in xrange(x[0], x[1]):
+                print sample_name[y], plate_name['sub_plate_name'][i], plate_desc['sub_plate_desc'][i]
                 plate_head_dict[sample_name[y]] = [{'sub_plate_name': plate_name['sub_plate_name'][i]},
                                                    {'sub_plate_desc': plate_desc['sub_plate_desc'][i]}]
-        return plate_head_dict
     else:
         pass
-
+#    print plate_head_dict['1329705169']
+    return plate_head_dict
     
 def normalize_all_dict(sheet, sample_name, redcap_empty_list):
     info = contact(sheet)
