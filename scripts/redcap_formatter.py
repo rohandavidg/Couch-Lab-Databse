@@ -1,4 +1,5 @@
 #!/cygdrive/c/Users/m149947/AppData/Local/Continuum/Anaconda2-32/python
+# -*- coding: utf-8 -*-
 
 """
 formats the submission manifests into
@@ -18,14 +19,15 @@ import csv
 import itertools
 from collections import defaultdict
 import collections
+import pandas as pd
 
 
 date = datetime.date.today()
-box_manifest = "../input/box_stock_manifest.headers" 
-plate_manifest = "../input/plate_stock_manifest.headers"
+box_manifest = "../box_stock_manifest.headers" 
+plate_manifest = "../plate_stock_manifest.headers"
 logger_filename = "RedCap_formatter-" + str(date) + ".log"
 regex = r'[?|*|.|!|(|)|/|-]'
-redcap_mapping_file = "../input/redcap_mapping_file.tsv"
+redcap_mapping_file = "../redcap_mapping_file.tsv"
 
 
 def main():
@@ -40,16 +42,16 @@ def run(submission_manifest):
     check_manifest = fork_by_headers(excel_headers)
     get_data_index = data_fields_index(manifest, data_start_int)
     header_mapper_dict = check_headers(check_manifest, redcap_mapping_file, regex, logger)
-    sample_name, annotate_excel_file_dict = sample_data(manifest, excel_headers,
+    sample_name, annotate_excel_file_dict, divide = sample_data(manifest, excel_headers,
                                                         get_data_index, header_mapper_dict)
     red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest, plate_manifest)
-    plate_headers_create = plate_headers_dict(check_manifest, manifest, sample_name)
-    pprint.pprint(plate_headers_create['1329705169'])
+    plate_headers_create = plate_headers_dict(check_manifest, manifest, sample_name, divide)
     contact_dict = normalize_all_dict(manifest, sample_name, red_cap_empty_fields)
     combination_dict = combine_contact_annotate(check_manifest, annotate_excel_file_dict,
                                                 contact_dict, plate_headers_create)
     create_merged_list = merge_dict(combination_dict)
     out_tsv = write_out_tsv(create_merged_list, out_headers)
+    sort_out = format_output_tsv(check_manifest)
     
 
 class record(object):
@@ -273,11 +275,23 @@ def sample_data(sheet, header, data_index, header_dict):
     needed = data_index[0]
     data_list = get_each_data_fields(sheet, header, needed[0], needed[1])
     target = [record(r) for r in data_list]
+    chop_data = True
     for l in target:
         if l.Sample_Name != '' and l.Sample_Name != 'Sample Name *':
             sample_name.append(l.Sample_Name)
             abl_data_dict[l.Sample_Name] = [{header_dict[k]:v} for k, v in l.__dict__.iteritems() if k in header_dict.keys()]
-    return sample_name, abl_data_dict
+        try:
+            if l.Coord == 'H12':
+                if not l.Sample_Name:
+                    chop_data = True
+                else:
+                    pass
+            else:
+                pass
+        except AttributeError:
+            pass
+                
+    return sample_name, abl_data_dict, chop_data
 
 
 
@@ -292,28 +306,28 @@ def empty_dict(fork, box_manifest, plate_manifest):
         fork == "plate_manifest"
         header = headers(plate_manifest)
         plate_headers = header.index_headers()
-        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + plate_headers[-5:]
+        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-5:]
         redcap_empty_list = [{k:""} for k in empty_plate_headers]
         return redcap_empty_list, plate_headers
 
 
-def plate_headers_dict(fork, sheet, sample_name):
+def plate_headers_dict(fork, sheet, sample_name, chop_data):
+    end = [int(95) if chop_data == True else int(96)]
     plate_head_dict = {}
     if fork == "plate_manifest":
         info = contact(sheet)    
         plate_name = info.get_plate_name()
         plate_desc = info.get_plate_description()
-        ranges = [(n, min(n+95, len(sample_name))) for n in xrange(0, len(sample_name), 95)]
+        ranges = [(n, min(n+end[0], len(sample_name))) for n in xrange(0, len(sample_name), end[0])]
         for i, x in enumerate(ranges):
             for y in xrange(x[0], x[1]):
-                print sample_name[y], plate_name['sub_plate_name'][i], plate_desc['sub_plate_desc'][i]
                 plate_head_dict[sample_name[y]] = [{'sub_plate_name': plate_name['sub_plate_name'][i]},
                                                    {'sub_plate_desc': plate_desc['sub_plate_desc'][i]}]
     else:
         pass
-#    print plate_head_dict['1329705169']
     return plate_head_dict
-    
+
+
 def normalize_all_dict(sheet, sample_name, redcap_empty_list):
     info = contact(sheet)
     study_contact_id = info.get_contact_id()
@@ -349,13 +363,23 @@ def merge_dict(dd):
 
 
 def write_out_tsv(out_list, headers):
-    with open("../test_out.tsv", 'wb') as fout:
+    with open("test_out.tsv", 'wb') as fout:
         fieldnames = headers
-        writer = csv.DictWriter(fout, fieldnames=fieldnames, extrasaction='ignore', delimiter = "\t")
+        writer = csv.DictWriter(fout, fieldnames=fieldnames, extrasaction='ignore', delimiter="\t")
         writer.writeheader()
         for row in out_list:
             writer.writerow(row)
 
-            
+
+def format_output_tsv(fork):
+    if fork == "plate_manifest":
+        df = pd.read_table('test_out.tsv')
+        df = df.sort_index(by=['sub_plate_name', 'sub_plate_coordinate'], ascending=[True, True])
+        df.to_csv('output_sorted.csv', index=False)
+    else:
+        df = pd.read_csv('test_out.tsv', delimiter="\t")
+        df = df.sort_index(by=['sub_box_name', 'sub_box_coordinate'], ascending=[True, True])
+        df.to_csv('out_sorted.csv', index=False)
+
 if __name__ ==  '__main__':
     main()
