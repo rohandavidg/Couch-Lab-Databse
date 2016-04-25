@@ -17,19 +17,18 @@ from collections import defaultdict
 import collections
 import pandas as pd
 import pprint
-
+import os
 
 date = datetime.date.today()
-plate_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/plate_stock_manifest.txt'
-box_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/box_stock_manifest.txt' 
+plate_manifest = os.path.join(os.path.dirname("__file__"), 'plate_stock_manifest.txt')
+#plate_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/plate_stock_manifest.txt'
+#box_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/box_stock_manifest.txt' 
+box_manifest = os.path.join(os.path.dirname("__file__"), 'box_stock_manifest.txt')
 logger_filename = "RedCap_formatter-" + str(date) + ".log"
 regex = r'[?|*|.|!|(|)|/|-]'
-redcap_mapping_file = 'C:/Users/m149947/Desktop/couch/CARRIERS/database/test/redcap_mapping_file.txt'
+#redcap_mapping_file = 'C:/Users/m149947/Desktop/couch/CARRIERS/database/test/redcap_mapping_file.txt'
+redcap_mapping_file = os.path.join(os.path.dirname("__file__"), 'redcap_mapping_file.txt')
 complete_dict = {'cawk_complete': '0', 'capc_complete':'0', 'capp_complete':'0', 'casq_complete': '0'}
-
-#print plate_manifest
-#print box_manifest
-#print redcap_mapping_file
 
 
 def main():
@@ -49,11 +48,8 @@ def run(submission_manifest):
     red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest, plate_manifest)
     plate_headers_create = plate_headers_dict(check_manifest, manifest, sample_name, divide)
     contact_dict = normalize_all_dict(manifest, sample_name, red_cap_empty_fields)
-#    print red_cap_empty_fields
-#    pprint.pprint(contact_dict)
     combination_dict = combine_contact_annotate(check_manifest, annotate_excel_file_dict,
                                                 contact_dict, plate_headers_create)
-#    pprint.pprint(combination_dict)
     create_merged_list = merge_dict(combination_dict)
     out_tsv = write_out_tsv(create_merged_list, out_headers)
     sort_out = format_output_tsv(check_manifest)
@@ -304,14 +300,14 @@ def empty_dict(fork, box_manifest, plate_manifest):
     if fork == "box_manifest" or fork == "acs_manifest":
         header = headers(box_manifest)
         box_headers = header.index_headers()
-        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-22:]
+        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-21:]
         redcap_empty_list = [{k:complete_dict[k]} if k in complete_dict.keys() else {k:""} for k in empty_box_headers]
         return redcap_empty_list, box_headers
     else:
         fork == "plate_manifest"
         header = headers(plate_manifest)
         plate_headers = header.index_headers()
-        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-21:]
+        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-15:]
         redcap_empty_list = [{k:complete_dict[k]} if k in complete_dict.keys() else {k:""} for k in empty_plate_headers]
         return redcap_empty_list, plate_headers
 
@@ -384,7 +380,7 @@ def format_output_tsv(fork):
     else:
         df = pd.read_csv('test_out.tsv', delimiter="\t")
         df = df.sort_values(by=['sub_box_name', 'sub_box_coordinate'], ascending=[True, True])
-        df.to_csv('out_sorted.csv', index=False)
+        df.to_csv('output_sorted.csv', index=False)
 
 if __name__ ==  '__main__':
     main()
