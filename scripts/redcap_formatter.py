@@ -28,8 +28,8 @@ logger_filename = "RedCap_formatter-" + str(date) + ".log"
 regex = r'[?|*|.|!|(|)|/|-]'
 #redcap_mapping_file = 'C:/Users/m149947/Desktop/couch/CARRIERS/database/test/redcap_mapping_file.txt'
 redcap_mapping_file = os.path.join(os.path.dirname("__file__"), 'redcap_mapping_file.txt')
-complete_dict = {'cawk_complete': '0', 'capc_complete':'0', 'capp_complete':'0', 'casq_complete': '0'}
-
+complete_plate_dict = {'cawk_complete': '0', 'capc_complete':'0', 'capp_complete':'0', 'casq_complete': '0'}
+complete_box_dict = {'cawk_complete': '0', 'capc_complete':'0', 'capp_complete':'0', 'casq_complete': '0','cast_tube_transfer': '1'}
 
 def main():
     submission_manifest = sys.argv[1]
@@ -138,6 +138,7 @@ def get_excel_sheet(submission_manifest, logger):
     sheet_number = workbook.nsheets
     sheet_names = workbook.sheet_names()
     sheet = workbook.sheet_by_index(0)
+    logger.info("version 1.0 recap_formatter.py")
     logger.info('%s -> using this sheet to get info',sheet_names[0])
     return sheet
 
@@ -295,20 +296,19 @@ def sample_data(sheet, header, data_index, header_dict):
     return sample_name, abl_data_dict, chop_data
 
 
-
 def empty_dict(fork, box_manifest, plate_manifest):
     if fork == "box_manifest" or fork == "acs_manifest":
         header = headers(box_manifest)
         box_headers = header.index_headers()
-        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-21:]
-        redcap_empty_list = [{k:complete_dict[k]} if k in complete_dict.keys() else {k:""} for k in empty_box_headers]
+        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-11:]
+        redcap_empty_list = [{k:complete_box_dict[k]} if k in complete_box_dict.keys() else {k:""} for k in empty_box_headers]
         return redcap_empty_list, box_headers
     else:
         fork == "plate_manifest"
         header = headers(plate_manifest)
         plate_headers = header.index_headers()
         empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-15:]
-        redcap_empty_list = [{k:complete_dict[k]} if k in complete_dict.keys() else {k:""} for k in empty_plate_headers]
+        redcap_empty_list = [{k:complete_plate_dict[k]} if k in complete_plate_dict.keys() else {k:""} for k in empty_plate_headers]
         return redcap_empty_list, plate_headers
 
 
@@ -377,10 +377,12 @@ def format_output_tsv(fork):
         df = pd.read_table('test_out.tsv')
         df = df.sort_values(by=['sub_plate_name', 'sub_plate_coordinate'], ascending=[True, True])
         df.to_csv('output_sorted.csv', index=False)
+        os.remove('test_out.tsv')
     else:
         df = pd.read_csv('test_out.tsv', delimiter="\t")
         df = df.sort_values(by=['sub_box_name', 'sub_box_coordinate'], ascending=[True, True])
         df.to_csv('output_sorted.csv', index=False)
-
+        os.remove('test_out.tsv')
+        
 if __name__ ==  '__main__':
     main()
