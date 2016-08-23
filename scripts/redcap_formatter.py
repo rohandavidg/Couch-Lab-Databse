@@ -19,6 +19,8 @@ import pandas as pd
 import pprint
 import os
 
+version = "v1.3"
+
 date = datetime.date.today()
 plate_manifest = os.path.join(os.path.dirname("__file__"), 'plate_stock_manifest.txt')
 #plate_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/plate_stock_manifest.txt'
@@ -28,8 +30,11 @@ logger_filename = "RedCap_formatter-" + str(date) + ".log"
 regex = r'[?|*|.|!|(|)|/|-]'
 #redcap_mapping_file = 'C:/Users/m149947/Desktop/couch/CARRIERS/database/test/redcap_mapping_file.txt'
 redcap_mapping_file = os.path.join(os.path.dirname("__file__"), 'redcap_mapping_file.txt')
-complete_plate_dict = {'cawk_complete': '0', 'capc_complete':'0', 'capp_complete':'0', 'casq_complete': '0'}
-complete_box_dict = {'cawk_complete': '0', 'capc_complete':'0', 'capp_complete':'0', 'casq_complete': '0','cast_tube_transfer': '1'}
+
+complete_plate_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'capp_complete':'0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol':'0', 'capc_qc_complete': '0', 'capc_vol_qc':'0', 'capp_vol_capc':'0','caup_plate_vol':'0', 'cabp_complete':'0', 'db_script_version': version}
+complete_box_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'capp_complete':'0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol':'0', 'capc_qc_complete': '0', 'capc_vol_qc':'0', 'capp_vol_capc':'0','caup_plate_vol':'0', 'cabp_complete':'0', 'cast_tube_transfer': '1', 'db_script_version': version}
+
+#print complete_plate_dict
 
 def main():
     submission_manifest = sys.argv[1]
@@ -46,6 +51,7 @@ def run(submission_manifest):
     sample_name, annotate_excel_file_dict, divide = sample_data(manifest, excel_headers,
                                                         get_data_index, header_mapper_dict)
     red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest, plate_manifest)
+#    print red_cap_empty_fields #out_headers
     plate_headers_create = plate_headers_dict(check_manifest, manifest, sample_name, divide)
     contact_dict = normalize_all_dict(manifest, sample_name, red_cap_empty_fields)
     combination_dict = combine_contact_annotate(check_manifest, annotate_excel_file_dict,
@@ -300,14 +306,15 @@ def empty_dict(fork, box_manifest, plate_manifest):
     if fork == "box_manifest" or fork == "acs_manifest":
         header = headers(box_manifest)
         box_headers = header.index_headers()
-        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-11:]
+        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-26:]
         redcap_empty_list = [{k:complete_box_dict[k]} if k in complete_box_dict.keys() else {k:""} for k in empty_box_headers]
+        pprint.pprint(redcap_empty_list)
         return redcap_empty_list, box_headers
     else:
         fork == "plate_manifest"
         header = headers(plate_manifest)
         plate_headers = header.index_headers()
-        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-15:]
+        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-25:]
         redcap_empty_list = [{k:complete_plate_dict[k]} if k in complete_plate_dict.keys() else {k:""} for k in empty_plate_headers]
         return redcap_empty_list, plate_headers
 
