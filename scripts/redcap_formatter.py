@@ -1,10 +1,13 @@
-#!/cygdrive/c/Users/m149947/AppData/Local/Continuum/Anaconda2-32/python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
-"""
+'''
 formats the submission manifests into
-a redCAp compatiable format.
-"""
+a redCAp compatiable format
+'''
+
 import sys
+print sys.getdefaultencoding()
 sys.setrecursionlimit(1500)
 import xlrd
 import xlwt
@@ -18,9 +21,11 @@ import collections
 import pandas as pd
 import pprint
 import os
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
-version = "v1.4"
 
+version = "v1.6"
 date = datetime.date.today()
 plate_manifest = os.path.join(os.path.dirname("__file__"), 'plate_stock_manifest.txt')
 #plate_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/plate_stock_manifest.txt'
@@ -384,12 +389,12 @@ def format_output_tsv(fork):
         df = pd.read_table('test_out.tsv')
         df = df.sort_values(by=['sub_plate_name', 'sub_plate_coordinate'], ascending=[True, True])
         df.to_csv('output_sorted.csv', index=False)
-        os.remove('test_out.tsv')
+#        os.remove('test_out.tsv')
     else:
         df = pd.read_csv('test_out.tsv', delimiter="\t")
         df = df.sort_values(by=['sub_box_name', 'sub_box_coordinate'], ascending=[True, True])
         df.to_csv('output_sorted.csv', index=False)
-        os.remove('test_out.tsv')
+#        os.remove('test_out.tsv')
         
 if __name__ ==  '__main__':
     main()

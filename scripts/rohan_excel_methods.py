@@ -181,7 +181,7 @@ class validate_excel:
             else:
                 print "Non-unique value found :%s in row %s" % (value, r) 
 
-                    
+                
     def check_in_dropdown(self, sheet, drop_down_list, column):
         self.sheet = sheet
         self.column = column
