@@ -26,33 +26,11 @@ Tissue Source	sub_tissue_source	Tissue Source	sub_tissue_source	Tissue Source	su
 Disease Type	sub_disease	Disease Type	sub_disease	Disease Type	sub_disease
 Ethnicity	sub_ethnicity	Ethnicity	sub_ethnicity	Ethnicity	sub_ethnicity
 Race	sub_race	Race	sub_race	Race	sub_race
-Match_Set	cast_match_set	Match_Set	cast_match_set	Match_Set	cast_match_set
 Comment	sub_comment	Comment	sub_comment	Comment	sub_comment
 N/A	cast_dup	N/A	cast_dup	N/A	cast_dup
 N/A	cast_dup_reason	N/A	cast_dup_reason	N/A	cast_dup_reason
-N/A	caqc_qc_conc	N/A	caqc_qc_conc	N/A	caqc_qc_conc
-N/A	caqc_qc_dna_qual	N/A	caqc_qc_dna_qual	N/A	caqc_qc_dna_qual
-N/A	caqc_conc_complete	N/A	caqc_conc_complete	N/A	caqc_conc_complete
-N/A	caqc_dnaqual_complete	N/A	caqc_dnaqual_complete	N/A	caqc_dnaqual_complete
+N/A	caqc_qc	N/A	caqc_qc	N/A	caqc_qc
+N/A	caqc_complete	N/A	caqc_complete	N/A	caqc_complete
 N/A	cast_comment	N/A	cast_tube_transfer	N/A	cast_tube_transfer
-N/A	sub_seq_protocol	N/A	sub_seq_protocol	N/A	sub_seq_protocol
-N/A	caup_upenn	N/A	caup_upenn	N/A	caup_upenn
-N/A	cast_conc10	N/A	cast_conc10	N/A	cast_conc10
-N/A	cast_conc23_te	N/A	cast_conc23_te	N/A	cast_conc23_te
-N/A	caqc_mod	N/A	caqc_mod	N/A	caqc_mod
-N/A	cast_buffer	N/A	cast_buffer	N/A	cast_buffer
-N/A	cawk_complete	N/A	cawk_complete	N/A	cawk_complete
-N/A	capc_complete	N/A	capc_complete	N/A	capc_complete
-N/A	casq_complete	N/A	casq_complete	N/A	casq_complete
-N/A	caqc_vol	N/A	caqc_vol	N/A	caqc_vol
-N/A	cawk_plate_vol_stock	N/A	cawk_plate_vol_stock	N/A	cawk_plate_vol_stock
-N/A	capc_plate_col_cawk	N/A	capc_plate_col_cawk	N/A	capc_plate_col_cawk
-N/A	capc_plate_vol_final	N/A	capc_plate_vol_final	N/A	capc_plate_vol_final
-N/A	capc_vol_qc	N/A	capc_vol_qc	N/A	capc_vol_qc
-N/A	caup_plate_vol	N/A	caup_plate_vol	N/A	caup_plate_vol
-N/A	cabp_vol_capc	N/A	cabp_vol_capc	N/A	cabp_vol_capc
-N/A	cabp_complete	N/A	cabp_complete	N/A	cabp_complete
-N/A	db_script_version	N/A	db_script_version	N/A	db_script_version
-N/A	db_stock_sop_version	N/A	db_stock_sop_version	N/A	db_stock_sop_version
 ''	''	''	''	N/A	cast_comment	N/A	cast_comment
 ''	''	ACS_Match_Set	ACS_Match_Set	Box Barcode	Box_Barcode

@@ -25,7 +25,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-version = "v1.6"
+version = "v1.7"
 date = datetime.date.today()
 plate_manifest = os.path.join(os.path.dirname("__file__"), 'plate_stock_manifest.txt')
 #plate_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/plate_stock_manifest.txt'
@@ -36,8 +36,8 @@ regex = r'[?|*|.|!|(|)|/|-]'
 #redcap_mapping_file = 'C:/Users/m149947/Desktop/couch/CARRIERS/database/test/redcap_mapping_file.txt'
 redcap_mapping_file = os.path.join(os.path.dirname("__file__"), 'redcap_mapping_file.txt')
 
-complete_plate_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'capp_complete':'0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol':'0', 'capc_qc_complete': '0', 'capc_vol_qc':'0', 'capp_vol_capc':'0','caup_plate_vol':'0', 'cabp_complete':'0','bio_complete':'0', 'db_script_version': version}
-complete_box_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'capp_complete':'0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol':'0', 'capc_qc_complete': '0', 'capc_vol_qc':'0', 'capp_vol_capc':'0','caup_plate_vol':'0', 'cabp_complete':'0', 'cast_tube_transfer': '1','bio_complete':'0', 'db_script_version': version}
+complete_plate_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol_final':'0', 'capc_vol_qc':'0', 'caup_plate_vol':'0', 'cabp_vol_capc':'0', 'cabp_complete':'0','bio_complete':'0', 'db_script_version': version}
+complete_box_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol_final':'0', 'capc_qc_complete': '0', 'capc_vol_qc':'0', 'caup_plate_vol':'0','cabp_vol_capc':'0', 'cabp_complete':'0', 'cast_tube_transfer': '1','bio_complete':'0', 'db_script_version': version}
 
 #print complete_plate_dict
 
@@ -311,7 +311,7 @@ def empty_dict(fork, box_manifest, plate_manifest):
     if fork == "box_manifest" or fork == "acs_manifest":
         header = headers(box_manifest)
         box_headers = header.index_headers()
-        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-26:]
+        empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-24:]
         redcap_empty_list = [{k:complete_box_dict[k]} if k in complete_box_dict.keys() else {k:""} for k in empty_box_headers]
 #        pprint.pprint(redcap_empty_list)
         return redcap_empty_list, box_headers
@@ -319,7 +319,7 @@ def empty_dict(fork, box_manifest, plate_manifest):
         fork == "plate_manifest"
         header = headers(plate_manifest)
         plate_headers = header.index_headers()
-        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-26:]
+        empty_plate_headers = plate_headers[:5] + ['cast_plate_barcode'] + ['cast_buffer'] + plate_headers[-24:]
         redcap_empty_list = [{k:complete_plate_dict[k]} if k in complete_plate_dict.keys() else {k:""} for k in empty_plate_headers]
         return redcap_empty_list, plate_headers
 

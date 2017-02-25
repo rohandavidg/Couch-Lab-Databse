@@ -1,0 +1,36 @@
+Stock Manifest Header	REDCap Variable	Note	Stock Manifest Header	REDCap Variable	Note	Stock Manifest Header	REDCap Variable
+N/A	database_id	CH to enter; leave blank column	N/A	study_id	CH to enter; leave blank column	N/A	study_id
+N/A	carriers_id	CH to enter; leave blank column	N/A	carriers_id	CH to enter; leave blank column	N/A	carriers_id
+N/A	cast_plate_received_dt	CH to enter; leave blank column	N/A	cast_box_received_dt	CH to enter; leave blank column	N/A	cast_box_received_dt
+N/A	cast_plate_box	CH to enter; leave blank column	N/A	cast_plate_box	CH to enter; leave blank column	N/A	cast_plate_box
+N/A	cast_plate_lab_location	CH to enter; leave blank column	N/A	cast_box_lab_location	CH to enter; leave blank column	N/A	cast_box_lab_location
+Contact ID (Study Acronym)	sub_study_id	Manifest header; enter for every sample	Contact ID (Study Acronym)	sub_study_id	Manifest header; enter for every sample	Contact ID (Study Acronym)	sub_study_id
+Contact Person	sub_contact	Manifest header; enter for every sample	Contact Person	sub_contact	Manifest header; enter for every sample	Contact Person	sub_contact
+Contact Email	sub_contact_email	Manifest header; enter for every sample	Contact Email	sub_contact_email	Manifest header; enter for every sample	Contact Email	sub_contact_email
+Project Type	sub_project	Manifest header; enter for every sample	Project Type	sub_project	Manifest header; enter for every sample	Project Type	sub_project
+N/A	cast_plate_barcode	CH to enter; leave blank column	N/A	cast_box_barcode	CH to enter; leave blank column	N/A	cast_box_barcode
+Plate Name *	sub_plate_name	Plate header; enter for every sample in plate	Box Name*	sub_box_name	Box header; enter for every sample in box	Box Name*	sub_box_name
+Plate Description	sub_plate_desc	Plate header; enter for every sample in plate	Box Description	sub_box_desc	Box header; enter for every sample in box	N/A	sub_box_desc
+Coord *	sub_plate_coordinate	Listed for every sample	Coord *	sub_box_coordinate	Listed for every sample	Box Coordinate*	sub_box_coordinate
+Sample Name *	sub_sample_name	Listed for every sample	Sample Name *	sub_sample_name	Listed for every sample	Sample Name *	sub_sample_name
+Individual ID *	sub_individual_id	Listed for every sample	Individual ID *	sub_individual_id	Listed for every sample	Individual ID *	sub_individual_id
+Gender *	sub_gender	Listed for every sample	Gender *	sub_gender	Listed for every sample	Gender *	sub_gender
+Sample Status *	sub_sample_status	Listed for every sample	Sample Status *	sub_sample_status	Listed for every sample	Sample Status *	sub_sample_status
+Pedigree *	sub_pedigree	Listed for every sample	Pedigree *	sub_pedigree	Listed for every sample	Pedigree *	sub_pedigree
+Mother ID	sub_mother_id	Listed for every sample	Mother ID	sub_mother_id	Listed for every sample	Mother ID	sub_mother_id
+Father ID	sub_father_id	Listed for every sample	Father ID	sub_father_id	Listed for every sample	Father ID	sub_father_id
+Vol. (ul)*	sub_plate_vol	Listed for every sample	Vol. (ul)*	sub_box_vol	Listed for every sample	Vol. (ul)*	sub_box_vol
+Conc. (ng/ul) *	sub_plate_conc	Listed for every sample	Conc. (ng/ul) *	sub_box_conc	Listed for every sample	Conc. (ng/ul) *	sub_box_conc
+Alias	sub_alias	Listed for every sample	Alias	sub_alias	Listed for every sample	Alias	sub_alias
+Site of Origin	sub_site_origin	Listed for every sample	Site of Origin	sub_site_origin	Listed for every sample	Site of Origin	sub_site_origin
+Tissue Source	sub_tissue_source	Listed for every sample	Tissue Source	sub_tissue_source	Listed for every sample	Tissue Source	sub_tissue_source
+Disease Type	sub_disease	Listed for every sample	Disease Type	sub_disease	Listed for every sample	Disease Type	sub_disease
+Ethnicity	sub_ethnicity	Listed for every sample	Ethnicity	sub_ethnicity	Listed for every sample	Ethnicity	sub_ethnicity
+Race	sub_race	Listed for every sample	Race	sub_race	Listed for every sample	Race	sub_race
+Comment	sub_comment	Listed for every sample	Comment	sub_comment	Listed for every sample	Comment	sub_comment
+N/A	cast_dup	CH to enter; leave blank column	N/A	cast_dup	CH to enter; leave blank column	N/A	cast_dup
+N/A	cast_dup_reason	CH to enter; leave blank column	N/A	cast_dup_reason	CH to enter; leave blank column	N/A	cast_dup_reason
+N/A	caqc_qc	CH to enter; leave blank column	N/A	caqc_qc	CH to enter; leave blank column	N/A	caqc_qc
+N/A	caqc_complete	CH to enter; leave blank column	N/A	caqc_complete	CH to enter; leave blank column	N/A	caqc_complete
+N/A	cast_comment	CH to enter; leave blank column	N/A	cast_tube_transfer	CH to enter; leave blank column	N/A	cast_tube_transfer
+			N/A	cast_comment	CH to enter; leave blank column	N/A	cast_comment
