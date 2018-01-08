@@ -25,21 +25,18 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-version = "v1.7"
+version = "v1.9"
 date = datetime.date.today()
 plate_manifest = os.path.join(os.path.dirname("__file__"), 'plate_stock_manifest.txt')
-#plate_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/plate_stock_manifest.txt'
-#box_manifest = 'c:/Users/m149947/Desktop/couch/CARRIERS/database/test/box_stock_manifest.txt' 
 box_manifest = os.path.join(os.path.dirname("__file__"), 'box_stock_manifest.txt')
 logger_filename = "RedCap_formatter-" + str(date) + ".log"
 regex = r'[?|*|.|!|(|)|/|-]'
-#redcap_mapping_file = 'C:/Users/m149947/Desktop/couch/CARRIERS/database/test/redcap_mapping_file.txt'
 redcap_mapping_file = os.path.join(os.path.dirname("__file__"), 'redcap_mapping_file.txt')
 
 complete_plate_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol_final':'0', 'capc_vol_qc':'0', 'caup_plate_vol':'0', 'cabp_vol_capc':'0', 'cabp_complete':'0','bio_complete':'0', 'db_script_version': version}
+
 complete_box_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol_final':'0', 'capc_qc_complete': '0', 'capc_vol_qc':'0', 'caup_plate_vol':'0','cabp_vol_capc':'0', 'cabp_complete':'0', 'cast_tube_transfer': '1','bio_complete':'0', 'db_script_version': version}
 
-#print complete_plate_dict
 
 def main():
     submission_manifest = sys.argv[1]
@@ -52,15 +49,22 @@ def run(submission_manifest):
     excel_headers, data_start_int = get_data_headers(manifest, regex)
     check_manifest = fork_by_headers(excel_headers)
     get_data_index = data_fields_index(manifest, data_start_int)
-    header_mapper_dict = check_headers(check_manifest, redcap_mapping_file, regex, logger)
-    sample_name, annotate_excel_file_dict, divide = sample_data(manifest, excel_headers,
-                                                        get_data_index, header_mapper_dict)
-    red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest, plate_manifest)
-#    print red_cap_empty_fields #out_headers
-    plate_headers_create = plate_headers_dict(check_manifest, manifest, sample_name, divide)
+    header_mapper_dict = check_headers(check_manifest, redcap_mapping_file,
+                                       regex, logger)
+    sample_name, annotate_excel_file_dict, divide = sample_data(manifest,
+                                                                excel_headers,
+                                                                get_data_index,
+                                                                header_mapper_dict)
+    print divide
+    red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest,
+                                                   plate_manifest)
+    plate_headers_create = plate_headers_dict(check_manifest, manifest,
+                                              sample_name, divide)
     contact_dict = normalize_all_dict(manifest, sample_name, red_cap_empty_fields)
-    combination_dict = combine_contact_annotate(check_manifest, annotate_excel_file_dict,
-                                                contact_dict, plate_headers_create)
+    combination_dict = combine_contact_annotate(check_manifest,
+                                                annotate_excel_file_dict,
+                                                contact_dict,
+                                                plate_headers_create)
     create_merged_list = merge_dict(combination_dict)
     out_tsv = write_out_tsv(create_merged_list, out_headers)
     sort_out = format_output_tsv(check_manifest)
@@ -149,7 +153,7 @@ def get_excel_sheet(submission_manifest, logger):
     sheet_number = workbook.nsheets
     sheet_names = workbook.sheet_names()
     sheet = workbook.sheet_by_index(0)
-    logger.info("version 1.0 recap_formatter.py")
+    logger.info("version 1.9 recap_formatter.py")
     logger.info('%s -> using this sheet to get info',sheet_names[0])
     return sheet
 
@@ -288,22 +292,22 @@ def sample_data(sheet, header, data_index, header_dict):
     needed = data_index[0]
     data_list = get_each_data_fields(sheet, header, needed[0], needed[1])
     target = [record(r) for r in data_list]
-    chop_data = True
+    chop_data = False
     for l in target:
         if l.Sample_Name != '' and l.Sample_Name != 'Sample Name *':
-            sample_name.append(l.Sample_Name)
-            abl_data_dict[l.Sample_Name] = [{header_dict[k]:v} for k, v in l.__dict__.iteritems() if k in header_dict.keys()]
-        try:
+            key = str(l.Sample_Name) + "_" + str(l.Tissue_Source) + "_" + str(l.Coord)
+            sample_name.append(key)
+            abl_data_dict[key] = [{header_dict[k]:v} for k, v in l.__dict__.iteritems() if k in header_dict.keys()]
+        else:
             if l.Coord == 'H12':
+                print l.Coord
                 if not l.Sample_Name:
+                    print l.Sample_Name
                     chop_data = True
                 else:
                     pass
             else:
                 pass
-        except AttributeError:
-            pass
-                
     return sample_name, abl_data_dict, chop_data
 
 
@@ -313,7 +317,6 @@ def empty_dict(fork, box_manifest, plate_manifest):
         box_headers = header.index_headers()
         empty_box_headers = box_headers[:5] + ["cast_box_barcode"] + ['cast_buffer'] + box_headers[-24:]
         redcap_empty_list = [{k:complete_box_dict[k]} if k in complete_box_dict.keys() else {k:""} for k in empty_box_headers]
-#        pprint.pprint(redcap_empty_list)
         return redcap_empty_list, box_headers
     else:
         fork == "plate_manifest"
@@ -381,7 +384,11 @@ def write_out_tsv(out_list, headers):
         writer = csv.DictWriter(fout, fieldnames=fieldnames, extrasaction='ignore', delimiter="\t")
         writer.writeheader()
         for row in out_list:
-            writer.writerow(row)
+            if row['sub_sample_name'] == 'NA' or row['sub_sample_name'] == 'na'\
+               or row['sub_sample_name'] == '':
+                pprint.pprint(row)
+            else:
+                writer.writerow(row)
 
 
 def format_output_tsv(fork):
