@@ -32,6 +32,8 @@ box_manifest = os.path.join(os.path.dirname("__file__"), 'box_stock_manifest.txt
 logger_filename = "RedCap_formatter-" + str(date) + ".log"
 regex = r'[?|*|.|!|(|)|/|-]'
 redcap_mapping_file = os.path.join(os.path.dirname("__file__"), 'redcap_mapping_file.txt')
+tmp_file = os.path.join(os.path.dirname("__file__"), 'test_out.tsv')
+outfile = os.path.join(os.path.dirname("__file__"), 'output_sorted.csv')
 
 complete_plate_dict = {'caqc_conc_complete':'0', 'caqc_dnaqual_complete':'0', 'cawk_complete':'0', 'capc_complete': '0', 'casq_complete':'0', 'caqc_vol':'0', 'cawk_plate_vol_stock': '0', 'capc_plate_vol_cawk': '0', 'capc_plate_vol_final':'0', 'capc_vol_qc':'0', 'caup_plate_vol':'0', 'cabp_vol_capc':'0', 'cabp_complete':'0','bio_complete':'0', 'db_script_version': version}
 
@@ -55,7 +57,6 @@ def run(submission_manifest):
                                                                 excel_headers,
                                                                 get_data_index,
                                                                 header_mapper_dict)
-    print divide
     red_cap_empty_fields, out_headers = empty_dict(check_manifest, box_manifest,
                                                    plate_manifest)
     plate_headers_create = plate_headers_dict(check_manifest, manifest,
@@ -66,10 +67,13 @@ def run(submission_manifest):
                                                 contact_dict,
                                                 plate_headers_create)
     create_merged_list = merge_dict(combination_dict)
-    out_tsv = write_out_tsv(create_merged_list, out_headers)
-    sort_out = format_output_tsv(check_manifest)
-    
-
+    out_tsv = write_out_tsv(create_merged_list, out_headers, logger)
+    sort_out = format_output_tsv(check_manifest, logger)
+    try:
+        os.remove(tmp_file)
+    except WindowsError:
+        logger.debug('tsv_out.tsv not found')
+        
 class record(object):
     """
     using built in dictionary and grabbing
@@ -378,30 +382,32 @@ def merge_dict(dd):
     return out_list
 
 
-def write_out_tsv(out_list, headers):
+def write_out_tsv(out_list, headers, logger):
     with open("test_out.tsv", 'wb') as fout:
         fieldnames = headers
         writer = csv.DictWriter(fout, fieldnames=fieldnames, extrasaction='ignore', delimiter="\t")
         writer.writeheader()
+        logger.info('merged tsv out is unsorted')
         for row in out_list:
             if row['sub_sample_name'] == 'NA' or row['sub_sample_name'] == 'na'\
                or row['sub_sample_name'] == '':
-                pprint.pprint(row)
+                pass
             else:
                 writer.writerow(row)
 
 
-def format_output_tsv(fork):
+def format_output_tsv(fork, logger):
     if fork == "plate_manifest":
-        df = pd.read_table('test_out.tsv')
+        logger.info('plate manifest sorting is used')
+        df = pd.read_table(tmp_file)
         df = df.sort_values(by=['sub_plate_name', 'sub_plate_coordinate'], ascending=[True, True])
-        df.to_csv('output_sorted.csv', index=False)
-#        os.remove('test_out.tsv')
+        df.to_csv(outfile, index=False)
     else:
-        df = pd.read_csv('test_out.tsv', delimiter="\t")
+        df = pd.read_csv(tmp_file, delimiter="\t")
+        logger.info('box manifest sorting is used')
         df = df.sort_values(by=['sub_box_name', 'sub_box_coordinate'], ascending=[True, True])
-        df.to_csv('output_sorted.csv', index=False)
-#        os.remove('test_out.tsv')
+        df.to_csv(outfile, index=False)
+
         
 if __name__ ==  '__main__':
     main()
